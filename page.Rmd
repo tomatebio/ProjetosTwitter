@@ -1,0 +1,77 @@
+---
+title: "Outbreaks"
+author: "carlos"
+date: "August 7, 2017"
+output: html_document
+---
+#Reports of outbreaks from 2007 to 2017
+
+data from https://www.cfr.org/interactives/GH_Vaccine_Map/#map
+```{r setup, include=FALSE,echo=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+```{r cars, echo=F,warning=FALSE}
+library(stringr)
+library(reshape2)
+library(ggplot2)
+suppressPackageStartupMessages(library(dplyr))
+library(leaflet)
+vacine<-read.csv("vacine.csv")
+
+vacineClear<-vacine[,c(1:13)]
+
+vacineClear$Outbreak<- gsub(".*[Ff]lu*","flu",vacineClear$Outbreak) 
+vacineClear$Outbreak<-as.factor(vacineClear$Outbreak)
+vacineClear$Long<-as.numeric(as.vector(vacineClear$Long))
+
+
+
+
+tmp_date<-str_split(vacineClear$Date,"-")
+
+vacineClear$Country<-str_trim(vacineClear$Location.1.1)
+extractDate<-function(x){
+     return(x[1])
+}
+
+tmp_date2<-sapply(tmp_date,extractDate)
+
+tmp_date2[grep("\\.",tmp_date2)]<-as.numeric(tmp_date2[grep("\\.",tmp_date2)])
+# imputacao de data
+tmp_date2[grep("/",tmp_date2,invert=TRUE)]<-paste0("1/",tmp_date2[grep("/",tmp_date2,invert=TRUE)])
+
+vacineClear$Date<-as.Date(paste0("1/",tmp_date2), format="%d/%m/%Y")
+
+vacineClear$Year<-as.numeric(format(vacineClear$Date,"%Y"))
+
+vacine_tbl<-tbl_df(vacineClear) 
+
+```
+```{r}
+
+```
+
+
+
+
+```{r pressure, echo=FALSE, warning=FALSE}
+
+P.country<- vacine_tbl %>%
+  select(lat=Lat,lng=Long)
+  
+
+
+P.country %>% 
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(clusterOptions = markerClusterOptions())
+
+
+
+```
+
+
